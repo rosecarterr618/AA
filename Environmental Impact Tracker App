@@ -1,0 +1,52 @@
+import json
+import os
+
+DATA_FILE = "environmental_data.json"
+
+def load_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as file:
+            data = json.load(file)
+        return data
+    else:
+        return {"carbon_footprint": 0}
+
+def save_data(data):
+    with open(DATA_FILE, "w") as file:
+        json.dump(data, file)
+
+def track_carbon_footprint(data, amount):
+    data["carbon_footprint"] += amount
+    save_data(data)
+
+def get_recommendation(carbon_footprint):
+    if carbon_footprint < 50:
+        return "Your environmental impact is low. Keep up the good work!"
+    elif 50 <= carbon_footprint < 100:
+        return "You can further reduce your impact by using energy-efficient appliances."
+    else:
+        return "Consider using public transport or carpooling to reduce your carbon footprint."
+
+def main():
+    data = load_data()
+
+    print("Environmental Impact Tracker")
+    print(f"Current Carbon Footprint: {data['carbon_footprint']} units")
+
+    while True:
+        try:
+            amount = float(input("Enter the environmental impact for today (in units): "))
+            track_carbon_footprint(data, amount)
+            print("Data saved successfully.")
+            print(f"Updated Carbon Footprint: {data['carbon_footprint']} units")
+            recommendation = get_recommendation(data['carbon_footprint'])
+            print(recommendation)
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+
+        response = input("Do you want to enter more data? (yes/no): ").lower()
+        if response != 'yes':
+            break
+
+if __name__ == "__main__":
+    main()
