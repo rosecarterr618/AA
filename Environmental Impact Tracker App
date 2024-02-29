@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 
 DATA_FILE = "environmental_data.json"
 
@@ -9,44 +10,81 @@ def load_data():
             data = json.load(file)
         return data
     else:
-        return {"carbon_footprint": 0}
+        return {"carbon_footprint": 0, "water_usage": 0, "electricity_consumption": 0, "activities": []}
 
 def save_data(data):
     with open(DATA_FILE, "w") as file:
         json.dump(data, file)
 
-def track_carbon_footprint(data, amount):
-    data["carbon_footprint"] += amount
+def track_environmental_impact(data, impact_type, amount):
+    data[impact_type] += amount
+    data["activities"].append({"type": impact_type, "amount": amount, "timestamp": str(datetime.now())})
     save_data(data)
 
-def get_recommendation(carbon_footprint):
-    if carbon_footprint < 50:
-        return "Your environmental impact is low. Keep up the good work!"
-    elif 50 <= carbon_footprint < 100:
-        return "You can further reduce your impact by using energy-efficient appliances."
+def get_recommendation(data):
+    total_carbon_footprint = data['carbon_footprint']
+    total_water_usage = data['water_usage']
+    total_electricity_consumption = data['electricity_consumption']
+
+    recommendation = "Environmental Impact Summary:\n"
+    recommendation += f"Total Carbon Footprint: {total_carbon_footprint} units\n"
+    recommendation += f"Total Water Usage: {total_water_usage} liters\n"
+    recommendation += f"Total Electricity Consumption: {total_electricity_consumption} kWh\n\n"
+
+    if total_carbon_footprint < 50 and total_water_usage < 100 and total_electricity_consumption < 50:
+        recommendation += "Your overall environmental impact is low. Keep it up!"
     else:
-        return "Consider using public transport or carpooling to reduce your carbon footprint."
+        if total_carbon_footprint >= 50:
+            recommendation += "Consider using public transport or carpooling to reduce your carbon footprint.\n"
+
+        if total_water_usage >= 100:
+            recommendation += "Save water by fixing leaks and using water-efficient appliances.\n"
+
+        if total_electricity_consumption >= 50:
+            recommendation += "Use energy-efficient appliances and turn off electronic devices when not in use.\n"
+
+    return recommendation
+
+def show_activities(data):
+    print("\nEnvironmental Impact Activities:")
+    for activity in data['activities']:
+        print(f"{activity['timestamp']} - {activity['type']}: {activity['amount']} units")
 
 def main():
     data = load_data()
 
     print("Environmental Impact Tracker")
-    print(f"Current Carbon Footprint: {data['carbon_footprint']} units")
+    print(get_recommendation(data))
 
     while True:
-        try:
-            amount = float(input("Enter the environmental impact for today (in units): "))
-            track_carbon_footprint(data, amount)
-            print("Data saved successfully.")
-            print(f"Updated Carbon Footprint: {data['carbon_footprint']} units")
-            recommendation = get_recommendation(data['carbon_footprint'])
-            print(recommendation)
-        except ValueError:
-            print("Invalid input. Please enter a valid number.")
+        print("\nSelect an environmental impact to track:")
+        print("1. Carbon Footprint")
+        print("2. Water Usage")
+        print("3. Electricity Consumption")
+        print("4. Show Environmental Impact Summary")
+        print("5. Show Environmental Impact Activities")
+        print("6. Quit")
 
-        response = input("Do you want to enter more data? (yes/no): ").lower()
-        if response != 'yes':
+        choice = input("Enter your choice (1-6): ")
+
+        if choice == '1':
+            amount = float(input("Enter the carbon footprint for today (in units): "))
+            track_environmental_impact(data, "carbon_footprint", amount)
+        elif choice == '2':
+            amount = float(input("Enter the water usage for today (in liters): "))
+            track_environmental_impact(data, "water_usage", amount)
+        elif choice == '3':
+            amount = float(input("Enter the electricity consumption for today (in kWh): "))
+            track_environmental_impact(data, "electricity_consumption", amount)
+        elif choice == '4':
+            print(get_recommendation(data))
+        elif choice == '5':
+            show_activities(data)
+        elif choice == '6':
+            print("Exiting the Environmental Impact Tracker. Goodbye!")
             break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 6.")
 
 if __name__ == "__main__":
     main()
